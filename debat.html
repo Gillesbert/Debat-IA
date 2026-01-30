@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Débat IA</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap');
+
+        :root {
+            /* Palette Modern & Vibrant */
+            --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at 50% 0%, #1f1a16 0%, #000000 100%);
+
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.08);
+            --glass-active: rgba(255, 255, 255, 0.12);
+            --glass-shine: rgba(255, 255, 255, 0.15);
+
+            --primary: #f97316;
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --accent: #f472b6;
+
+            --text-main: #fafaf9;
+            --text-muted: #a8a29e;
+
+            --anim-speed: 0.5s;
+            --ease-elastic: cubic-bezier(0.3, 1.5, 0.4, 1);
+            --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 1rem;
+        }
+
+        /* Ambient Living Background */
+        .ambient-light {
+            display: none;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(20px, 40px) scale(1.1);
+            }
+        }
+
+        /* Main App Container */
+        #app {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: max-width 0.3s ease;
+        }
+
+        #app.wide-view {
+            max-width: 1200px;
+        }
+
+        /* Steps Layout */
+        .step-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            animation: fadeIn var(--anim-speed) var(--ease-smooth) forwards;
+            padding-bottom: 2rem;
+        }
+
+        .step-container.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+                filter: blur(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Header & Typography */
+        h1#screen-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .question {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 30%, #d6d3d1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Instructional Box */
+        .instruction {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-align: center;
+            width: 100%;
+            margin: 2rem 0 0 0;
+            line-height: 1.6;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .instruction strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Option Cards Grid */
+        .options-grid {
+            display: grid;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        /* Premium Buttons */
+        .btn-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-shine);
+            /* Top shine */
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s var(--ease-smooth);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hover States */
+        .btn-card:hover {
+            background: var(--glass-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(249, 115, 22, 0.1);
+            /* Subtle glow */
+        }
+
+        .btn-card:active {
+            transform: scale(0.97);
+            background: var(--glass-active);
+        }
+
+        .btn-card strong {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.6rem;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        .btn-card small {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            line-height: 1.5;
+            transition: color 0.3s;
+        }
+
+        .btn-card:hover small {
+            color: #cbd5e1;
+        }
+
+        /* Result View Orb */
+        .result-view {
+            padding-top: 2rem;
+        }
+
+        .result-circle {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 80px rgba(255, 255, 255, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.05);
+            animation: orbFloat 4s infinite ease-in-out;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                box-shadow: 0 0 80px rgba(255, 255, 255, 0.1);
+                border-color: var(--glass-border);
+            }
+
+            50% {
+                transform: translateY(-10px);
+                box-shadow: 0 0 100px rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .result-verb {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+        }
+
+        .result-advice {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            width: 100%;
+            line-height: 1.6;
+            margin: 0 auto;
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Nav & Actions */
+        .btn-action {
+            margin-top: 2rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #e7e5e4 0%, #f5f5f4 100%);
+            color: #1c1917;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: 0 10px 20px -5px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 1rem;
+            margin-top: 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-back:hover {
+            opacity: 1;
+        }
+
+        /* Progress Dots */
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 2.5rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s var(--ease-elastic);
+        }
+
+        .dot.active {
+            width: 24px;
+            background-color: var(--primary);
+            border-radius: 10px;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Mobile Tweaks */
+        @media (max-width: 480px) {
+            .question {
+                font-size: 1.8rem;
+            }
+
+            .btn-card {
+                padding: 1.25rem;
+            }
+
+            .result-circle {
+                width: 200px;
+                height: 200px;
+            }
+
+            .result-verb {
+                font-size: 2.2rem;
+            }
+
+            .options-grid {
+                gap: 0.8rem;
+            }
+        }
+
+        .brand-logo {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+            opacity: 1;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .brand-logo {
+                top: 1.5rem;
+                left: 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="brand-logo">DÉBAT <span style="color: var(--primary)">IA</span></div>
+    <!-- Ambient lights removed -->
+
+    <div id="app">
+        <!-- Progress Dots -->
+        <div class="progress-dots" id="dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <!-- HEADER (Minimal) -->
+        <h1 id="screen-label">ANALYSE STRATÉGIQUE</h1>
+
+        <!-- STEP 1: STRATEGY -->
+        <div id="step-1" class="step-container active">
+            <p class="question">Quelle est la stratégie adverse ?</p>
+            <div class="options-grid">
+                <div class="btn-card" onclick="nextStep(1, 'OFFENSIVE')">
+                    <strong>OFFENSIVE</strong>
+                    <small>Attaque personnelle • Agression • Interruption</small>
+                </div>
+                <div class="btn-card" onclick="nextStep(1, 'DIVERSION')">
+                    <strong>DIVERSION</strong>
+                    <small>Brouillage du débat • Déplacement du sujet</small>
+                </div>
+                <div class="btn-card" onclick="nextStep(1, 'ANCRAGE')">
+                    <strong>ANCRAGE</strong>
+                    <small>Argumentation (bonne ou mauvaise) • Biais cognitifs</small>
+                </div>
+                <div class="btn-card" onclick="showExamples()">
+                    <strong>Exemples concrets</strong>
+                    <small>Offensive • Diversion • Ancrage</small>
+                </div>
+            </div>
+            <p class="instruction">
+                <strong>Priorité absolue :</strong> Si l'interlocuteur cumule plusieurs stratégies, sélectionnez la plus
+                haute
+                dans la liste.<br>
+                <em>Vous devriez neutraliser l'hostilité avant de débattre du fond, sinon vous parlez dans le
+                    vide.</em>
+            </p>
+        </div>
+
+        <!-- STEP 1.5: EXAMPLES -->
+        <div id="step-examples" class="step-container">
+            <p class="question">Quel exemple vous intéresse ?</p>
+
+            <div class="dual-column-container" id="examples-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <button class="btn-back" onclick="backToStep1()">Retour</button>
+        </div>
+
+        <style>
+            .dual-column-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+                width: 100%;
+                align-items: start;
+            }
+
+            @media (max-width: 1000px) {
+                .dual-column-container {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+
+            @media (max-width: 650px) {
+                .dual-column-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .column-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+        </style>
+
+        <!-- STEP 2: CONTEXT -->
+        <div id="step-2" class="step-container">
+            <p class="question">Quel est le contexte ?</p>
+            <div class="options-grid">
+                <div class="btn-card" onclick="nextStep(2, 'SUBI')">
+                    <strong>SUBI</strong>
+                    <small>Manque de maîtrise • Public hostile • Difficulté quelconque</small>
+                </div>
+                <div class="btn-card" onclick="nextStep(2, 'MAITRISE')">
+                    <strong>MAÎTRISÉ</strong>
+                    <small>Ascendant dans le débat • Public favorable • Aisance</small>
+                </div>
+            </div>
+            <button class="btn-back" onclick="resetApp()">Retour</button>
+        </div>
+
+        <!-- RESULT -->
+        <div id="result" class="step-container result-view">
+            <div id="selected-card-container" style="margin-bottom: 2rem; width: 100%;">
+                <!-- Selected card will be injected here -->
+            </div>
+            <div class="result-circle">
+                <div id="res-verb" class="result-verb">VERBE</div>
+            </div>
+            <div id="res-advice" class="result-advice">
+                Conseil personnalisé ici.
+            </div>
+            <button class="btn-action" onclick="resetApp()">Nouvelle Analyse</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Data Logic
+        const STRATEGY_MATRIX = {
+            "OFFENSIVE": {
+                "SUBI": { verb: "RÉVÉLER", advice: "Toute justification de votre part serait une grave erreur. Rejetez le cadre que votre interlocuteur tente de vous imposer. Pour cela, décrivez ce qu'il est en train de faire (vous attaquer) plutôt que de répondre à son attaque." },
+                "MAITRISE": { verb: "BALAYER", advice: "Ne descendez pas dans l'arène. En répondant, vous tomberiez au même niveau que votre interlocuteur. Souriez et revenez immédiatement au sujet sérieux avec des arguments solides." }
+            },
+            "DIVERSION": {
+                "SUBI": { verb: "INSISTER", advice: "Votre interlocuteur tente de vous perdre. Ne vous dispersez pas. Utilisez la technique du disque rayé : répétez votre question ou votre argument comme s'il ne l'avait pas entendu." },
+                "MAITRISE": { verb: "ISOLER", advice: "Votre interlocuteur cherche à masquer son incompétence ou son inconfort. Stoppez son élan en extrayant une seule phrase absurde que vous déconstruisez rapidement." }
+            },
+            "ANCRAGE": {
+                "SUBI": { verb: "RECADRER", advice: "Si vous n'avez pas les moyens de contrer l'argumentation de votre interlocuteur, utilisez-la à votre avantage. Si nécessaire, concédez rapidement sa prémisse, mais changez l'angle de vue (zoom arrière, contexte, valeurs) pour rendre son argument inopérant ou en marge du sujet le plus important. À l'issue du débat, renseignez-vous afin de pouvoir contrer son argumentation la prochaine fois." },
+                "MAITRISE": { verb: "TRANCHER", advice: "La construction de votre interlocuteur va à l'encontre de la réalité ou des règles. Rappelez le principe fondamental ou la loi qu'il viole, et sanctionnez l'erreur par un fait indiscutable qui clôt immédiatement le débat." }
+            }
+        };
+
+        const ARGUMENTS_DATA = [
+            { groupe: "alignement", texte: "Une IA ne peut pas avoir d'objectifs propres, elle exécute simplement ce qu'on lui dit." },
+            { groupe: "alignement", texte: "Il suffira de programmer des règles éthiques solides dans les IA pour qu'elles respectent nos valeurs." },
+            { groupe: "alignement", texte: "Nous avons déjà des modèles d'alignement avancés, comme l'apprentissage par renforcement basé sur des préférences humaines." },
+            { groupe: "alignement", texte: "Le problème de l'alignement est exagéré, car une IA superintelligente comprendra forcément nos intentions." },
+            { groupe: "alignement", texte: "Si une IA est mal alignée, on pourra toujours la corriger avec des mises à jour et des patchs." },
+            { groupe: "alignement", texte: "On sait déjà contrôler des systèmes complexes, il n'y a aucune raison qu'on perde le contrôle de l'IA." },
+            { groupe: "perte de contrôle", texte: "Une IA ne peut pas s'auto-améliorer sans qu'on lui donne explicitement cette capacité." },
+            { groupe: "perte de contrôle", texte: "Nous aurons toujours une IA sous contrôle, car nous décidons des mises à jour et des entraînements." },
+            { groupe: "perte de contrôle", texte: "Même une IA très avancée restera limitée par le matériel et les lois de la physique." },
+            { groupe: "perte de contrôle", texte: "Le scénario d'une IA qui s'auto-améliore indéfiniment est de la science-fiction." },
+            { groupe: "perte de contrôle", texte: "L'évolution exponentielle de l'IA est un mythe, on observe surtout des paliers de stagnation." },
+            { groupe: "perte de contrôle", texte: "Une IA qui se modifierait seule finirait par se corrompre et ne plus fonctionner correctement." },
+            { groupe: "manipulation", texte: "Les humains sont trop complexes pour qu'une IA puisse les manipuler efficacement." },
+            { groupe: "manipulation", texte: "Les deepfakes sont faciles à détecter et ne constituent pas une vraie menace." },
+            { groupe: "manipulation", texte: "Il n'y a pas de preuve que l'IA influence significativement l'opinion publique." },
+            { groupe: "manipulation", texte: "Les biais algorithmiques sont corrigés avec des mises à jour, donc ils ne posent pas de problème majeur." },
+            { groupe: "manipulation", texte: "Les réseaux sociaux utilisent déjà l'IA depuis des années et nous ne voyons pas d'effondrement de la société." },
+            { groupe: "manipulation", texte: "Une IA n'a pas d'intentions malveillantes, elle ne cherche pas à manipuler qui que ce soit." },
+            { groupe: "cyberattaques", texte: "Les systèmes informatiques critiques sont protégés par des mesures de cybersécurité robustes." },
+            { groupe: "cyberattaques", texte: "Une IA ne peut pas pirater un système de manière autonome, elle a besoin d'un opérateur humain." },
+            { groupe: "cyberattaques", texte: "Les attaques adversariales sur les IA sont limitées et peu efficaces en pratique." },
+            { groupe: "cyberattaques", texte: "Nous avons déjà des solutions basées sur l'IA pour détecter et bloquer les cyberattaques." },
+            { groupe: "cyberattaques", texte: "L'IA ne représente pas un risque plus grand que n'importe quel autre outil utilisé par les hackers." },
+            { groupe: "cyberattaques", texte: "Les entreprises de cybersécurité investissent massivement pour contrer les menaces IA." },
+            { groupe: "armes autonomes", texte: "Les IA militaires seront toujours supervisées par des humains." },
+            { groupe: "armes autonomes", texte: "Personne ne développera une IA qui décide seule de tuer, c'est contraire aux lois internationales." },
+            { groupe: "armes autonomes", texte: "Une IA ne peut pas remplacer un stratège humain sur un champ de bataille." },
+            { groupe: "armes autonomes", texte: "Les armes autonomes existent déjà sous forme de drones et elles n'ont jamais causé de catastrophe." },
+            { groupe: "armes autonomes", texte: "Les pays qui développent des armes IA respecteront les conventions de Genève." },
+            { groupe: "armes autonomes", texte: "L'IA militaire ne fera qu'augmenter la précision et réduire les pertes civiles." },
+            { groupe: "économie", texte: "L'IA créera plus d'emplois qu'elle n'en détruira." },
+            { groupe: "économie", texte: "Les révolutions industrielles ont toujours entraîné des gains économiques, ce sera pareil avec l'IA." },
+            { groupe: "économie", texte: "Nous avons encore besoin des humains pour contrôler et superviser les IA." },
+            { groupe: "économie", texte: "Le revenu universel et d'autres solutions économiques compenseront la destruction d'emplois." },
+            { groupe: "économie", texte: "L'IA va surtout automatiser les tâches répétitives, pas remplacer la créativité humaine." },
+            { groupe: "économie", texte: "Les entreprises auront toujours besoin d'humains pour gérer les décisions complexes." },
+            { groupe: "biotechnologie", texte: "L'IA en biologie sera surtout utilisée pour la médecine, pas pour créer des virus." },
+            { groupe: "biotechnologie", texte: "Il est impossible de créer un virus dangereux juste avec une IA." },
+            { groupe: "biotechnologie", texte: "Les laboratoires de recherche sont très encadrés, aucun risque qu'une IA serve à du bioterrorisme." },
+            { groupe: "biotechnologie", texte: "Les IA médicales sauvent déjà des vies, il ne faut pas exagérer les risques." },
+            { groupe: "biotechnologie", texte: "Un humain sera toujours nécessaire pour concevoir une arme biologique, une IA ne peut pas le faire seule." },
+            { groupe: "éthique", texte: "La reconnaissance faciale est surtout utilisée pour la sécurité et la lutte contre la criminalité." },
+            { groupe: "éthique", texte: "Nous avons des lois pour encadrer l'utilisation des IA dans la surveillance." },
+            { groupe: "éthique", texte: "Les systèmes de notation sociale comme en Chine ne seront jamais adoptés dans les démocraties." },
+            { groupe: "éthique", texte: "Les entreprises de la tech respectent la vie privée et n'utilisent pas l'IA pour espionner les citoyens." }
+        ];
+
+        const BIAIS_DATA = [
+            { type: "biais d'optimisme", texte: "L'IA va surtout nous apporter des bénéfices incroyables, pas des menaces." },
+            { type: "biais de normalité", texte: "Les technologies évoluent toujours, et on s'adapte à chaque fois sans problème." },
+            { type: "biais de statu quo", texte: "On utilise déjà l'IA aujourd'hui et rien de grave ne s'est produit." },
+            { type: "biais de confirmation", texte: "Tous les experts que je lis disent que l'IA est une opportunité, pas un danger." },
+            { type: "biais d'aveuglement aux conséquences", texte: "Les scénarios catastrophes sont exagérés, ce genre de choses n'arrive jamais." },
+            { type: "biais du survivant", texte: "Internet et l'automatisation ont changé le monde, et on est toujours là." },
+            { type: "biais du coût irrécupérable", texte: "On a investi des milliards dans l'IA, on ne peut pas faire marche arrière maintenant." },
+            { type: "biais de disponibilité", texte: "Je n'ai jamais entendu parler d'un vrai problème causé par une IA, donc ça doit être rare." },
+            { type: "effet dunning-kruger", texte: "Je travaille dans la tech, je sais que ces craintes sur l'IA sont exagérées." },
+            { type: "biais d'autorité", texte: "Elon Musk dit que l'IA est un atout majeur, donc on ne devrait pas s'inquiéter." },
+            { type: "effet de groupe", texte: "Tout le monde autour de moi pense que l'IA est une avancée positive." },
+            { type: "biais du monde juste", texte: "Les grandes entreprises technologiques ne laisseront jamais l'IA devenir un danger." },
+            { type: "biais de familiarité", texte: "On utilise déjà des IA comme Siri ou ChatGPT, et ça ne pose aucun problème." },
+            { type: "biais du présent", texte: "L'IA d'aujourd'hui est encore loin d'être dangereuse, pourquoi s'inquiéter maintenant ?" },
+            { type: "biais d'ancrage", texte: "L'IA, c'est juste un outil comme les autres, ça ne deviendra jamais incontrôlable." },
+            { type: "biais de l'autruche", texte: "Franchement, je préfère ne pas penser à ces scénarios catastrophes." },
+            { type: "biais de proportionnalité", texte: "Si l'IA était vraiment une menace, on en parlerait plus dans les médias." },
+            { type: "biais du faux dilemme", texte: "Soit on avance avec l'IA, soit on reste bloqués dans le passé." },
+            { type: "biais de récence", texte: "Les derniers progrès en IA montrent surtout des applications bénéfiques, pas des risques." },
+            { type: "effet d'habituation", texte: "On entend parler des dangers de la technologie depuis des années, et il ne s'est jamais rien passé." },
+            { type: "effet de cadrage", texte: "L'IA va surtout permettre d'améliorer nos vies et nos emplois." },
+            { type: "biais du joueur", texte: "Depuis des décennies, on nous prédit des catastrophes technologiques, et ça ne s'est jamais réalisé." },
+            { type: "illusion de contrôle", texte: "Les chercheurs ont totalement la main sur l'évolution de l'IA, aucun risque d'emballement." },
+            { type: "biais de responsabilité diffuse", texte: "Il y a tellement d'organisations qui surveillent l'IA que le danger est forcément sous contrôle." },
+            { type: "biais technophile", texte: "La technologie a toujours résolu plus de problèmes qu'elle n'en a créé." },
+            { type: "biais d'anthropomorphisme", texte: "L'IA ne pourra jamais vraiment penser ou agir comme un humain, donc elle ne sera pas dangereuse." },
+            { type: "biais de la rareté", texte: "Les vraies IA puissantes sont entre les mains de quelques entreprises seulement, elles ne seront pas accessibles au grand public." }
+        ];
+
+        const RHETORIQUE_DATA = [
+            { texte: "L'IA est un sujet complexe qui nécessite une approche équilibrée et responsable.", type: "langue de bois", groupe: "évasion" },
+            { texte: "Bien sûr, il existe des défis liés à l'IA, mais comme toute innovation, il faut peser les avantages et les inconvénients dans une perspective globale.", type: "dilution du propos", groupe: "dilution" },
+            { texte: "L'IA est une opportunité incroyable pour l'éducation et la santé, ne passons pas à côté de ces bénéfices.", type: "réponse hors sujet", groupe: "évasion" },
+            { texte: "Le vrai problème, ce n'est pas l'IA, c'est l'usage qu'en font les humains.", type: "déplacement du débat", groupe: "évasion" },
+            { texte: "Il y a peut-être quelques risques, mais globalement, l'IA est un progrès fantastique pour la société.", type: "fausse concession", groupe: "atténuation" },
+            { texte: "Toutes les technologies ont eu leurs critiques au début, et pourtant, elles ont toujours fini par apporter plus de bien que de mal.", type: "relativisation systématique", groupe: "atténuation" },
+            { texte: "Ceux qui s'inquiètent pour l'IA sont souvent les mêmes qui avaient peur d'Internet il y a 20 ans.", type: "contre-attaque personnelle (ad hominem)", groupe: "délégitimation" },
+            { texte: "Ce sont ceux qui veulent freiner l'IA qui mettent réellement la société en danger en ralentissant l'innovation.", type: "effet d'inversion accusatoire", groupe: "délégitimation" },
+            { texte: "Le progrès ne s'arrête jamais, l'IA ne fait que suivre une évolution naturelle.", type: "généralisation excessive", groupe: "dilution" },
+            { texte: "Au lieu de parler des dangers hypothétiques, parlons plutôt des moyens d'en faire un atout pour l'humanité.", type: "détournement de la question", groupe: "évasion" },
+            { texte: "Soyons réalistes : l'IA est là pour nous aider, pas pour nous détruire.", type: "appel au bon sens", groupe: "atténuation" },
+            { texte: "L'innovation ne s'arrête jamais !", type: "usage de slogans simplistes", groupe: "dilution" },
+            { texte: "Si nous n'investissons pas massivement dans l'IA, d'autres pays prendront de l'avance et nous domineront.", type: "création d'une menace extérieure", groupe: "évasion" },
+            { texte: "Nous devons faire confiance aux experts et aux ingénieurs qui savent ce qu'ils font.", type: "fausse posture d'autorité morale", groupe: "évasion" },
+            { texte: "Il y a des problèmes bien plus urgents à régler avant de s'inquiéter de l'IA.", type: "évitement par surenchère", groupe: "évasion" },
+            { texte: "Il est encore trop tôt pour savoir quel sera l'impact réel de l'IA sur notre société.", type: "flou volontaire", groupe: "évasion" },
+            { texte: "L'IA pourrait être une menace, mais aussi une solution aux grands défis de demain.", type: "multiplication des hypothèses contradictoires", groupe: "dilution" },
+            { texte: "Même les experts en IA ne sont pas d'accord entre eux sur ces questions.", type: "division du camp adverse", groupe: "délégitimation" },
+            { texte: "Tout le monde s'accorde à dire que l'IA est un formidable outil de progrès.", type: "création d'un faux consensus", groupe: "atténuation" },
+            { texte: "Les chercheurs en IA sont injustement attaqués alors qu'ils essaient juste de faire avancer la science.", type: "victimisation stratégique", groupe: "délégitimation" },
+            { texte: "Avant de parler des dangers, il faudrait d'abord comprendre comment fonctionne réellement une IA.", type: "déviation vers des considérations techniques", groupe: "évasion" },
+            { texte: "Regardez comment l'IA a sauvé des vies dans le domaine médical, ce n'est pas une menace !", type: "recours à une anecdote détournée", groupe: "évasion" },
+            { texte: "99 % des usages actuels de l'IA sont bénéfiques, donc le risque est minimal.", type: "utilisation de chiffres trompeurs", groupe: "atténuation" },
+            { texte: "Soit on avance avec l'IA, soit on prend du retard et on devient dépendants des autres pays.", type: "réduction du débat à une fausse alternative", groupe: "évasion" },
+            { texte: "Donc vous êtes contre toute avancée technologique, c'est bien ça ?", type: "reformulation biaisée des propos adverses", groupe: "délégitimation" },
+            { texte: "Personne ne veut créer une IA qui détruirait l'humanité, c'est absurde de le penser.", type: "création d'un homme de paille", groupe: "délégitimation" },
+            { texte: "Les craintes sur l'IA sont les mêmes qu'avec les premiers ordinateurs, et pourtant on ne peut plus s'en passer.", type: "amalgame subtil", groupe: "dilution" },
+            { texte: "L'IA, c'est comme un couteau : tout dépend de qui l'utilise.", type: "fausse analogie", groupe: "dilution" },
+            { texte: "Grâce à l'IA, des milliers de malades ont pu être diagnostiqués plus rapidement.", type: "détournement émotionnel", groupe: "évasion" },
+            { texte: "Nous devons avancer avec prudence et responsabilité dans le domaine de l'IA.", type: "éloge creux sans engagement précis", groupe: "dilution" },
+            { texte: "Ces inquiétudes sont exagérées, nous avons encore des décennies avant que l'IA ne devienne un vrai problème.", type: "minimisation de la portée des critiques", groupe: "atténuation" },
+            { texte: "C'est à la communauté internationale de se pencher sur ces questions.", type: "dissolution de la responsabilité dans un collectif flou", groupe: "évasion" },
+            { texte: "L'IA est une opportunité incroyable pour notre avenir.", type: "répétition excessive pour imposer un élément de langage", groupe: "dilution" },
+            { texte: "Ceux qui parlent de dangers existentiels sont souvent des alarmistes technophobes.", type: "accusation de radicalisme pour décrédibiliser l'adversaire", groupe: "délégitimation" },
+            { texte: "On verra bien comment l'IA évolue avant de prendre des mesures drastiques.", type: "report perpétuel de la décision à un avenir incertain", groupe: "évasion" },
+            { texte: "Ce sont surtout les médias qui exagèrent les risques de l'IA.", type: "mise en avant d'un ennemi interne pour éviter l'autocritique", groupe: "délégitimation" },
+            { texte: "C'est un sujet trop complexe pour être réduit à une simple question de menace.", type: "dévoiement du concept de complexité pour éviter une réponse claire", groupe: "évasion" },
+            { texte: "La vraie question, c'est comment l'IA va transformer l'économie et le marché du travail.", type: "stratégie de la diversion médiatique", groupe: "évasion" },
+            { texte: "Nous avons mis en place un comité de réflexion sur l'impact de l'IA.", type: "annonce de mesures symboliques sans effet réel", groupe: "évasion" },
+            { texte: "Le vrai problème, ce sont les biais algorithmiques, pas l'IA elle-même.", type: "focalisation sur un détail pour éviter le fond du problème", groupe: "évasion" },
+            { texte: "Les vraies inquiétudes concernent l'optimisation des réseaux neuronaux et non une prétendue menace.", type: "évitement par technicisation du débat", groupe: "évasion" },
+            { texte: "Remettre en cause l'IA, c'est freiner le progrès et nuire à l'humanité.", type: "prise d'otage morale", groupe: "délégitimation" },
+            { texte: "Vous vous inquiétez trop, il faut faire confiance aux experts.", type: "usage d'un ton paternaliste", groupe: "délégitimation" },
+            { texte: "L'IA a déjà prouvé qu'elle pouvait être plus éthique que les humains.", type: "déformation des faits", groupe: "atténuation" },
+            { texte: "On doit bien réfléchir avant de prendre des mesures trop radicales.", type: "éloge de la prudence excessive", groupe: "atténuation" },
+            { texte: "Bien sûr, il faut être vigilant, mais ce n'est pas une raison pour paniquer.", type: "faire semblant d'être en accord tout en vidant la critique de sa substance", groupe: "atténuation" },
+            { texte: "Ce n'est pas aux entreprises, mais aux gouvernements de gérer ces questions.", type: "déplacement du problème sur un autre niveau de responsabilité", groupe: "évasion" },
+            { texte: "Le PDG de Google affirme que l'IA est sous contrôle, faisons-lui confiance.", type: "instrumentalisation d'une figure d'autorité", groupe: "évasion" },
+            { texte: "Si on freine l'IA maintenant, on risque de tuer toute innovation et de nuire gravement à l'économie.", type: "exagération des risques liés à un changement proposé", groupe: "évasion" },
+            { texte: "Le véritable enjeu repose sur l'optimisation des modèles d'apprentissage auto-supervisé pour garantir une convergence efficace des architectures neuronales distribuées.", type: "brouillage du message par excès de jargon", groupe: "dilution" },
+            { texte: "Oui, il y a des risques avec l'IA, c'est pour ça que nous travaillons sur des régulations adaptées tout en encourageant l'innovation.", type: "récupération partielle d'une critique pour la désamorcer", groupe: "atténuation" },
+            { texte: "Ce sont ceux qui diffusent la peur autour de l'IA qui ralentissent les efforts pour mieux la contrôler.", type: "inversion des responsabilités", groupe: "délégitimation" },
+            { texte: "Nous sommes conscients des enjeux et nous faisons de notre mieux pour encadrer le développement de l'IA.", type: "fausse posture d'humilité", groupe: "atténuation" },
+            { texte: "Nous devons avancer rapidement sur ces questions avant que d'autres pays ne prennent le contrôle de l'IA mondiale.", type: "mise en scène de l'urgence pour éviter le débat de fond", groupe: "évasion" },
+            { texte: "L'IA va sauver des millions de vies grâce à ses avancées médicales, pourquoi se focaliser sur des scénarios catastrophes ?", type: "recours à l'émotion collective pour éviter une discussion rationnelle", groupe: "évasion" },
+            { texte: "Le vrai problème n'est pas l'IA elle-même, mais les biais algorithmiques qu'elle peut parfois reproduire.", type: "détournement du débat vers un sujet connexe moins menaçant", groupe: "évasion" },
+            { texte: "Mettre en place une régulation efficace de l'IA est extrêmement complexe et prendrait des décennies.", type: "exagération des difficultés techniques pour éviter une réforme", groupe: "évasion" },
+            { texte: "L'IA ne représente absolument aucun danger.", type: "déni pur et simple sans justification", groupe: "atténuation" },
+            { texte: "On a toujours su gérer les nouvelles technologies, il n'y a pas de raison que ce soit différent avec l'IA.", type: "éloge de la continuité pour éviter une remise en cause", groupe: "atténuation" },
+            { texte: "La grande majorité des gens sont enthousiastes à l'idée des avancées de l'IA, seuls quelques sceptiques s'inquiètent.", type: "mise en scène du soutien populaire supposé", groupe: "atténuation" },
+            { texte: "Comme l'a dit Alan Turing, l'IA est une étape naturelle dans l'évolution de l'intelligence humaine.", type: "utilisation de figures historiques pour s'associer à une légitimité supérieure", groupe: "évasion" }
+        ];
+
+        const STATE = {
+            strategy: null,
+            context: null,
+            selectedCard: null
+        };
+
+        const DEFAULT_CARDS = {
+            "OFFENSIVE": { subtitle: "Attaque personnelle • Agression • Interruption", text: null },
+            "DIVERSION": { subtitle: "Brouillage du débat • Déplacement du sujet", text: null },
+            "ANCRAGE": { subtitle: "Argumentation (bonne ou mauvaise) • Biais cognitifs", text: null }
+        };
+
+        const steps = {
+            1: document.getElementById('step-1'),
+            'examples': document.getElementById('step-examples'),
+            2: document.getElementById('step-2'),
+            3: document.getElementById('result')
+        };
+
+        const dots = document.querySelectorAll('.dot');
+        const screenLabel = document.getElementById('screen-label');
+
+        function updateDots(stepIndex) {
+            dots.forEach((d, i) => {
+                if (i === stepIndex - 1) d.classList.add('active');
+                else d.classList.remove('active');
+            });
+        }
+
+        function switchView(viewId) {
+            // Hide all
+            Object.values(steps).forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none';
+            });
+
+            // Show target with brief delay for animation reset logic if needed, 
+            // but CSS keyframes handle entrance.
+            const target = document.getElementById(viewId);
+            target.style.display = 'flex';
+            // Force reflow
+            void target.offsetWidth;
+            target.classList.add('active');
+        }
+
+        function nextStep(currentStep, selection) {
+            if (currentStep === 1) {
+                STATE.strategy = selection;
+
+                // Store default card info
+                if (DEFAULT_CARDS[selection]) {
+                    STATE.selectedCard = {
+                        title: selection,
+                        subtitle: DEFAULT_CARDS[selection].subtitle,
+                        text: DEFAULT_CARDS[selection].text
+                    };
+                }
+
+                switchView('step-2');
+                updateDots(2);
+                screenLabel.textContent = "ANALYSE CONTEXTUELLE";
+            } else if (currentStep === 2) {
+                STATE.context = selection;
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const data = STRATEGY_MATRIX[STATE.strategy][STATE.context];
+            document.getElementById('res-verb').textContent = data.verb;
+            document.getElementById('res-advice').textContent = data.advice;
+
+            // Render selected card
+            const cardContainer = document.getElementById('selected-card-container');
+            if (STATE.selectedCard) {
+                const card = document.createElement('div');
+                card.className = 'btn-card';
+                card.style.cursor = 'default';
+                card.style.transform = 'none'; // Disable hover scale effect if desired
+
+                let content = `<strong>${STATE.selectedCard.title}</strong>`;
+
+                if (STATE.selectedCard.text) {
+                    content += `
+                        <small style="color: var(--primary); text-transform: uppercase; margin: 0.2rem 0; font-weight: 600;">${STATE.selectedCard.subtitle}</small>
+                        <small style="font-style: italic; font-size: 0.95rem; text-transform: none; color: var(--text-main); line-height: 1.4;">«&nbsp;${STATE.selectedCard.text}&nbsp;»</small>
+                    `;
+                } else {
+                    content += `<small>${STATE.selectedCard.subtitle}</small>`;
+                }
+
+                card.innerHTML = content;
+                cardContainer.innerHTML = '';
+                cardContainer.appendChild(card);
+            }
+
+            switchView('result');
+            updateDots(3);
+            screenLabel.textContent = "RECOMMANDATION";
+        }
+
+        function showExamples() {
+            document.getElementById('app').classList.add('wide-view');
+            renderExamples();
+            switchView('step-examples');
+            screenLabel.textContent = "IDENTIFICATION PAR L'EXEMPLE";
+        }
+
+        function renderExamples() {
+            const container = document.getElementById('examples-grid');
+            container.innerHTML = '';
+
+            // Create 3 columns
+            const offensiveCol = document.createElement('div');
+            offensiveCol.className = 'column-list';
+            const diversionCol = document.createElement('div');
+            diversionCol.className = 'column-list';
+            const ancrageCol = document.createElement('div');
+            ancrageCol.className = 'column-list';
+
+            // Lists to collect data
+            const offensiveItems = [];
+            const diversionItems = [];
+            const ancrageItems = [];
+
+            // 1. Process Rhetoric (Offensive & Diversion)
+            RHETORIQUE_DATA.forEach(item => {
+                const isOffensive = item.groupe === 'délégitimation';
+                if (isOffensive) {
+                    offensiveItems.push({ title: 'OFFENSIVE', subtitle: item.type, text: item.texte });
+                } else {
+                    diversionItems.push({ title: 'DIVERSION', subtitle: item.type, text: item.texte });
+                }
+            });
+
+            // 2. Process Arguments (Ancrage)
+            ARGUMENTS_DATA.forEach(item => {
+                ancrageItems.push({ title: 'ANCRAGE', subtitle: item.groupe, text: item.texte });
+            });
+
+            // 3. Process Biases (Ancrage)
+            BIAIS_DATA.forEach(item => {
+                ancrageItems.push({ title: 'ANCRAGE', subtitle: item.type, text: item.texte });
+            });
+
+            // Sorter function (Alphabetical body)
+            const sorter = (a, b) => a.subtitle.localeCompare(b.subtitle, 'fr', { sensitivity: 'base' });
+
+            // Sort lists
+            offensiveItems.sort(sorter);
+            diversionItems.sort(sorter);
+            ancrageItems.sort(sorter);
+
+            // Populate columns
+            offensiveItems.forEach(item => offensiveCol.appendChild(createCard(item.title, item.subtitle, item.text)));
+            diversionItems.forEach(item => diversionCol.appendChild(createCard(item.title, item.subtitle, item.text)));
+            ancrageItems.forEach(item => ancrageCol.appendChild(createCard(item.title, item.subtitle, item.text)));
+
+            // Append columns to container in order
+            container.appendChild(offensiveCol);
+            container.appendChild(diversionCol);
+            container.appendChild(ancrageCol);
+        }
+
+        function createCard(title, subtitle, text) {
+            const card = document.createElement('div');
+            card.className = 'btn-card';
+            card.style.height = 'fit-content';
+
+            // Pass full card info to selectStrategyFromExample
+            // Use closure to capture current values
+            card.onclick = () => selectStrategyFromExample(title, subtitle, text);
+
+            // Capitalize first letter of subtitle
+            const sub = subtitle.charAt(0).toUpperCase() + subtitle.slice(1);
+
+            card.innerHTML = `
+                <strong>${title}</strong>
+                <small style="color: var(--primary); text-transform: uppercase; margin: 0.2rem 0; font-weight: 600;">${sub}</small>
+                <small style="font-style: italic; font-size: 0.95rem; text-transform: none; color: var(--text-main); line-height: 1.4;">«&nbsp;${text}&nbsp;»</small>
+            `;
+            return card;
+        }
+
+        function selectStrategyFromExample(strategy, subtitle, text) {
+            document.getElementById('app').classList.remove('wide-view');
+            STATE.strategy = strategy;
+            STATE.selectedCard = {
+                title: strategy,
+                subtitle: subtitle,
+                text: text
+            };
+            switchView('step-2');
+            updateDots(2);
+            screenLabel.textContent = "ANALYSE CONTEXTUELLE";
+        }
+
+        function backToStep1() {
+            document.getElementById('app').classList.remove('wide-view');
+            switchView('step-1');
+            screenLabel.textContent = "ANALYSE STRATÉGIQUE";
+        }
+
+        function resetApp() {
+            document.getElementById('app').classList.remove('wide-view');
+            STATE.strategy = null;
+            STATE.context = null;
+            STATE.selectedCard = null;
+            switchView('step-1');
+            updateDots(1);
+            screenLabel.textContent = "ANALYSE STRATÉGIQUE";
+        }
+
+        // Init
+        // Already set by HTML structure but valid to ensure clean state
+    </script>
+</body>
+
+</html>
